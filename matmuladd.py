@@ -33,8 +33,9 @@ def main():
 
     def fn(x, w, b):
         return torch.add(torch.matmul(x, w), b)
+        # return torch.addmm(b, x, w)
 
-    fn = torch.compile(fn) if args.compile else fn
+    fn = torch.compile(fn, mode="max-autotune-no-cudagraphs") if args.compile else fn
 
     def step():
         with torch.profiler.record_function("matmul_add"):
@@ -49,7 +50,7 @@ def main():
     os.makedirs(args.trace_dir, exist_ok=True)
     compile_tag = "compile" if args.compile else "eager"
     warmup_tag = "warm" if args.warmup else "cold"
-    tag = f"{args.size}_{args.dtype}_{warmup_tag}_{compile_tag}"
+    tag = f"{args.size}_{args.dtype}_{warmup_tag}_{compile_tag}_max-autotune-no-cudagraphs"
 
     table_path = os.path.join(args.trace_dir, f"{tag}.txt")
     trace_path = os.path.join(args.trace_dir, f"{tag}.json")
